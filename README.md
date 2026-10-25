@@ -147,6 +147,8 @@ Storybook.
   result sets slide to their new place, and the search field stays live throughout.
 - **Planet colour:** each card takes its planet's colour for its border light, glow, number,
   hover arrow and gauges.
+- **Ambient glint:** a glint of the planet's colour slowly circles each card's border, each
+  card at its own pace.
 - **Hover:** a glare follows the pointer, the planet leans towards it, and a scan line sweeps
   across the art.
 - **Gauges:** small bars compare size, surface water and population at a glance.

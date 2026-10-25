@@ -46,6 +46,12 @@ reduced-motion preferences, with no 3D interaction or galaxy visualisation.
   hover arrow and the gauges;
 - on the detail hero: the light behind the planet, the orbit satellites and the glow on the name.
 
+**Ambient loop:** a glint of the planet's colour slowly orbits each card's border (9 s per lap).
+It uses a conic gradient driven by a registered `@property` angle and masked to a 1.5 px band.
+Each card starts at a different point (offset from its seed), so the grid never pulses in sync.
+It is static under reduced motion. Animating a custom property repaints that thin band every
+frame, which is cheap at ten cards. A CSS-only loop was chosen over JavaScript or canvas.
+
 **Card interaction:**
 
 - a pointer-following glare ([`usePointerLight`](../../src/composables/usePointerLight.ts):

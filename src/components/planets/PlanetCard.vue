@@ -17,13 +17,22 @@ const props = defineProps<{
 const headingId = computed(() => `planet-${props.planet.id}-name`)
 
 // Each card takes its planet's signature colour: border, glow, gauges and hover light.
-const tint = computed(() => appearanceFor(props.planet).tint)
+const look = computed(() => appearanceFor(props.planet))
+
+const RING_PERIOD_MS = 9000
+const cardStyle = computed(() => ({
+  '--tint': look.value.tint,
+  // Start each card's light at a different point of its orbit, so the grid never pulses in sync.
+  '--ring-delay': `-${look.value.seed % RING_PERIOD_MS}ms`,
+  '--ring-period': `${RING_PERIOD_MS}ms`,
+}))
 
 usePointerLight(useTemplateRef<HTMLElement>('card'))
 </script>
 
 <template>
-  <article ref="card" class="card" :aria-labelledby="headingId" :style="{ '--tint': tint }">
+  <article ref="card" class="card" :aria-labelledby="headingId" :style="cardStyle">
+    <span class="card__ring" aria-hidden="true" />
     <span class="card__glare" aria-hidden="true" />
     <header class="card__top">
       <span class="card__index">No. {{ planet.id.padStart(2, '0') }}</span>
@@ -148,6 +157,49 @@ usePointerLight(useTemplateRef<HTMLElement>('card'))
 }
 
 // Soft light that follows the pointer (see usePointerLight); invisible until hovered.
+// Ambient life: a glint of the planet's colour slowly orbits the card's border.
+// Animating a registered custom property lets the conic gradient rotate smoothly.
+@property --ring-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.card__ring {
+  position: absolute;
+  inset: -1px;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--ring-angle),
+    transparent 0 68%,
+    color-mix(in oklab, var(--tint) 45%, transparent) 82%,
+    var(--tint) 92%,
+    transparent 100%
+  );
+  // Show the gradient only in the 1px border band.
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: 0.75;
+  pointer-events: none;
+  transition: opacity var(--duration-base);
+
+  .card:hover & {
+    opacity: 1;
+  }
+
+  @include motion {
+    animation: ring-orbit var(--ring-period) linear var(--ring-delay) infinite;
+  }
+}
+
+@keyframes ring-orbit {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
 .card__glare {
   position: absolute;
   inset: 0;
