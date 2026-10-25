@@ -20,16 +20,11 @@ html {
 body {
   min-height: 100dvh;
   background-color: var(--color-bg);
-  // Two soft light sources and a faint starfield, echoing the design direction.
+  // Two soft light sources; the stars are a separate drifting layer (App.vue).
   background-image:
     radial-gradient(60rem 40rem at 85% -10%, rgb(120 150 200 / 0.14), transparent 60%),
-    radial-gradient(40rem 30rem at -10% 20%, rgb(255 216 77 / 0.05), transparent 60%),
-    url('@/assets/starfield.svg');
+    radial-gradient(40rem 30rem at -10% 20%, rgb(255 216 77 / 0.05), transparent 60%);
   background-attachment: fixed;
-  background-size:
-    auto,
-    auto,
-    640px 640px;
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: var(--text-md);
@@ -70,6 +65,53 @@ h3 {
 ::selection {
   background: var(--color-accent);
   color: var(--color-bg);
+}
+
+// Two star layers drifting at different speeds give the background depth. Each layer is one
+// tile taller than the viewport and moves exactly one tile, so the loop is seamless.
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -640px 0 0;
+    background: url('@/assets/starfield.svg') 0 0 / 640px 640px;
+  }
+
+  &::after {
+    inset: -400px 0 0;
+    background-size: 400px 400px;
+    background-position: 180px 90px;
+    opacity: 0.45;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &::before {
+      animation: star-drift 160s linear infinite;
+    }
+
+    &::after {
+      animation: star-drift-near 90s linear infinite;
+    }
+  }
+}
+
+@keyframes star-drift {
+  to {
+    transform: translateY(640px);
+  }
+}
+
+@keyframes star-drift-near {
+  to {
+    transform: translateY(400px);
+  }
 }
 
 .visually-hidden {

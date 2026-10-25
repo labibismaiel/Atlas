@@ -10,6 +10,7 @@ import PlanetCard from '@/components/planets/PlanetCard.vue'
 import PaginationNav from '@/components/planets/PaginationNav.vue'
 import StatusPanel from '@/components/ui/StatusPanel.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import HeroSection from '@/components/hero/HeroSection.vue'
 
 // Container view: owns data and state, hands plain props to presentational components.
 // New results animate in (paging, search); see the 'results' rules in styles/_transitions.scss.
@@ -75,23 +76,9 @@ async function changePage(page: number) {
 
 <template>
   <div class="planets">
-    <section class="hero" aria-labelledby="hero-title">
-      <p class="hero__status">
-        <span>Holonet archive</span>
-        <span class="hero__live"><span class="hero__dot" aria-hidden="true" />Online</span>
-      </p>
-      <h1 id="hero-title" class="hero__title">
-        Explore.<br />
-        Discover.<br />
-        <span class="hero__accent">Chart.</span>
-      </h1>
-      <p class="hero__lead">
-        Every known planet in the Star Wars galaxy, and the films that brought it to the screen.
-      </p>
-      <div class="hero__orbit" aria-hidden="true"><span /><span /><span /></div>
-    </section>
+    <HeroSection />
 
-    <section class="results" aria-labelledby="results-title">
+    <section id="results" class="results" aria-labelledby="results-title">
       <div class="toolbar">
         <SearchField
           ref="searchField"
@@ -172,119 +159,10 @@ async function changePage(page: number) {
 </template>
 
 <style scoped lang="scss">
-.hero {
-  position: relative;
-  // The decorative orbit bleeds past the right edge on tablets; clip it without
-  // creating a scroll container.
-  overflow-x: clip;
-  display: grid;
-  gap: var(--space-4);
-  padding-block: var(--space-7) var(--space-7);
-
-  @include up(md) {
-    padding-block: var(--space-8);
-  }
-}
-
-.hero__status {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  justify-self: start;
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
-  @include eyebrow;
-  color: var(--color-text);
-}
-
-.hero__live {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-status);
-}
-
-.hero__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
-}
-
-.hero__title {
-  position: relative;
-  z-index: 1;
-  font-size: var(--text-hero);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.hero__accent {
-  color: var(--color-accent);
-}
-
-.hero__lead {
-  position: relative;
-  z-index: 1;
-  max-width: 30rem;
-  color: var(--color-text-muted);
-  font-size: var(--text-md);
-}
-
-// Decorative orbit rings, inspired by the design direction; hidden on small screens.
-.hero__orbit {
-  position: absolute;
-  top: 50%;
-  right: -4rem;
-  display: none;
-  width: 30rem;
-  aspect-ratio: 1;
-  translate: 0 -50%;
-  pointer-events: none;
-
-  @include up(md) {
-    display: block;
-  }
-
-  @include up(lg) {
-    right: 2rem;
-  }
-
-  span {
-    position: absolute;
-    inset: 0;
-    border: 1px solid var(--border-subtle);
-    border-radius: 50%;
-    transform: rotateX(68deg) rotateZ(-18deg);
-  }
-
-  span:nth-child(2) {
-    inset: 18%;
-    border-color: rgb(255 255 255 / 0.12);
-  }
-
-  span:nth-child(3) {
-    inset: 34%;
-    border: 0;
-    transform: none;
-    background: radial-gradient(
-      circle at 38% 34%,
-      #e9d7a8 0%,
-      #b48a4b 28%,
-      #4b3518 58%,
-      #120c05 74%
-    );
-    box-shadow:
-      -18px -10px 60px rgb(255 216 77 / 0.15),
-      inset -24px -18px 40px rgb(0 0 0 / 0.65);
-  }
-}
-
 // minmax(0, 1fr): grid items default to min-width: auto, which lets the search input's
 // intrinsic width push the page wider than a phone screen.
 .results {
+  scroll-margin-top: 5rem;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);

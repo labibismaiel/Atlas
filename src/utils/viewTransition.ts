@@ -1,10 +1,9 @@
 import { nextTick } from 'vue'
 import type { Router } from 'vue-router'
+import { prefersReducedMotion } from './motion'
 
 /** Kinds of transition, exposed as `<html data-transition="…">` so CSS can style each one. */
 export type TransitionKind = 'route' | 'results'
-
-const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 /**
  * The browser only runs a transition's update once it renders the next frame. If it doesn't
@@ -17,7 +16,7 @@ export function canTransition(): boolean {
   return (
     typeof document.startViewTransition === 'function' &&
     document.visibilityState !== 'hidden' &&
-    !reducedMotion()
+    !prefersReducedMotion()
   )
 }
 

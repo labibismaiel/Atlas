@@ -56,7 +56,7 @@ VITE_SWAPI_BASE_URL=https://swapi.dev/api   # default
 npm test
 ```
 
-There are 98 tests across 11 files, and they take about 4 seconds. Nothing calls the live API:
+There are 113 tests across 15 files, and they take about 4 seconds. Nothing calls the live API:
 `fetch` is replaced with a hand-controlled fake ([`src/test/fetch.ts`](src/test/fetch.ts)), so
 tests can resolve, reject or abort each request in any order. Fake timers cover the 300 ms
 debounce and the request timeout. Statement coverage is about 91%.
@@ -138,6 +138,20 @@ SWAPI has no images, so **each planet is drawn in SVG from its data**:
 
 See [ADR 0007](docs/decisions/0007-procedural-planet-art.md), or the _Biome gallery_ story in
 Storybook.
+
+## Header and hero
+
+- **Header:** a sci-fi console. It shows a live clock, the real network state ("Link stable"
+  or "Link lost") and a light travelling along its bottom edge.
+- **Hero:**
+  - the headline lines rise in turn, and a light sweeps across "CHART.";
+  - Tatooine is drawn by the same generated art as the cards, inside rotating dials and
+    orbiting satellites;
+  - a status label decodes into place once.
+- **Archive stats:** planets charted, films indexed and residents logged. Their digits shuffle
+  until SWAPI answers, then lock onto the real values, and a meter charges up under each one.
+  The shuffle doubles as the loading state, so no invented number is ever shown as real. See
+  [ADR 0013](docs/decisions/0013-sci-fi-header-and-hero.md).
 
 ## Motion and card identity
 

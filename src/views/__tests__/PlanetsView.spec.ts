@@ -6,6 +6,7 @@ import PlanetsView from '../PlanetsView.vue'
 import { SEARCH_DEBOUNCE_MS } from '@/composables/usePlanetSearch'
 import { resetFilmsCache } from '@/composables/useFilms'
 import { resetPlanetCache } from '@/composables/planetCache'
+import { resetArchiveStats } from '@/composables/useArchiveStats'
 import { controlledFetch, flushPromises } from '@/test/fetch'
 import { FILMS, pagedDto, planetDto, planetPage } from '@/test/fixtures'
 
@@ -53,6 +54,7 @@ beforeEach(() => {
   vi.useFakeTimers()
   resetFilmsCache()
   resetPlanetCache()
+  resetArchiveStats()
 })
 
 afterEach(() => {

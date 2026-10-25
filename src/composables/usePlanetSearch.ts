@@ -5,7 +5,7 @@ import { isAbortError } from '@/api/http'
 import type { Page, Planet } from '@/models'
 import { createLatestRequest } from '@/utils/latestRequest'
 import { normalizeSearch, readPage, readSearch, toListQuery } from '@/utils/query'
-import { rememberPlanets } from './planetCache'
+import { rememberCatalogueSize, rememberPlanets } from './planetCache'
 
 export const SEARCH_DEBOUNCE_MS = 300
 
@@ -85,6 +85,7 @@ export function usePlanetSearch({ applyResult = (write) => write() }: PlanetSear
       const data = await fetchPlanets({ search, page: pageNumber }, { signal: ticket.signal })
       if (!ticket.isCurrent()) return
       rememberPlanets(data.items)
+      if (!search) rememberCatalogueSize(data.total)
       applyResult(() => {
         if (ticket.isCurrent()) result.value = { ...data, query: search }
       })

@@ -18,6 +18,7 @@ can be defended for an app of this size, and say what was deliberately left out.
 | [0010](0010-testing.md)                  | Testing strategy                                       |
 | [0011](0011-storybook.md)                | Storybook, kept small                                  |
 | [0012](0012-motion-and-identity.md)      | Motion (View Transitions) and card identity            |
+| [0013](0013-sci-fi-header-and-hero.md)   | Sci-fi header and hero with real archive stats         |
 
 Format: _Context_ (why a decision was needed) → _Decision_ → _Consequences_ (trade-offs,
 including what was not done).

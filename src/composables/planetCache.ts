@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import type { Planet } from '@/models'
 
 // Planets already shown in the list, by id. Opening one renders its detail page immediately
@@ -13,7 +14,18 @@ export function cachedPlanet(id: string): Planet | undefined {
   return planets.get(id)
 }
 
+/**
+ * Size of the whole planet catalogue, learned from any unfiltered list response. The hero
+ * reads it so the archive stats never need a second, identical request.
+ */
+export const catalogueSize = ref<number | null>(null)
+
+export function rememberCatalogueSize(total: number): void {
+  catalogueSize.value = total
+}
+
 /** Test seam: forget remembered planets between tests. */
 export function resetPlanetCache(): void {
   planets.clear()
+  catalogueSize.value = null
 }

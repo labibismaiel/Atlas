@@ -46,6 +46,15 @@ export async function fetchFilms(options?: RequestOptions): Promise<Film[]> {
   return films
 }
 
+/** Total number of records in a SWAPI collection, from the first page's `count`. */
+export async function fetchCount(
+  resource: 'planets' | 'people',
+  options?: RequestOptions,
+): Promise<number> {
+  const dto = await getJson<PagedResponseDto<unknown>>(`${SWAPI_BASE_URL}/${resource}/`, options)
+  return dto.count
+}
+
 // Related resources are requested by id against the configured base URL rather than by the
 // absolute URL SWAPI embeds, so a mirror or proxy set in VITE_SWAPI_BASE_URL is honoured.
 export async function fetchPerson(id: string, options?: RequestOptions): Promise<Person> {

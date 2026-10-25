@@ -41,7 +41,7 @@ Where each of the eight required search behaviours is tested:
 
 ## Consequences
 
-- 98 tests run in about 4 s. Statement coverage is about 91% (`npm run test:coverage`).
+- 113 tests run in about 4 s. Statement coverage is about 91% (`npm run test:coverage`).
   Coverage is a sanity check, not a target.
 - jsdom does not render SVG filters or lay out the page, so visual quality was reviewed manually
   and in Storybook. No visual-regression tooling was added.

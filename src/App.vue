@@ -21,6 +21,7 @@ watch(
 </script>
 
 <template>
+  <div class="starfield" aria-hidden="true" />
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="app">
     <AppHeader />
