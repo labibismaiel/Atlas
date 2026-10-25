@@ -48,3 +48,73 @@
     opacity: 0;
   }
 }
+
+// In-page result changes (paging, search): cards that stay slide to their new place, cards
+// that leave fade out, new cards rise in one after another.
+:root[data-transition='results'] {
+  // Short and non-blocking: clicks reach the live page while cards settle.
+  &::view-transition {
+    pointer-events: none;
+  }
+
+  &::view-transition-group(*) {
+    animation-duration: 420ms;
+    animation-timing-function: var(--ease-out);
+  }
+
+  &::view-transition-old(root) {
+    animation: 160ms ease-in both fade-out;
+  }
+
+  &::view-transition-new(root) {
+    animation: 260ms var(--ease-out) both fade-in;
+  }
+
+  &::view-transition-old(.card):only-child {
+    animation: 180ms ease-in both card-exit;
+  }
+
+  // New cards wait for the old ones to clear, then rise in one after another.
+  &::view-transition-new(.card):only-child {
+    animation: 460ms var(--ease-out) 150ms both card-enter;
+  }
+
+  @for $i from 1 through 9 {
+    &::view-transition-new(.stagger-#{$i}):only-child {
+      animation-delay: 150ms + $i * 35ms;
+    }
+  }
+
+  // The search field stays live: typing never freezes behind a snapshot.
+  .toolbar {
+    view-transition-name: toolbar;
+  }
+
+  &::view-transition-old(toolbar) {
+    display: none;
+  }
+
+  &::view-transition-new(toolbar) {
+    animation: none;
+  }
+
+  // Cards move as one piece here; art and name only fly separately between pages.
+  .card__art,
+  .card__name {
+    view-transition-name: none !important;
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}
+
+@keyframes card-exit {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}

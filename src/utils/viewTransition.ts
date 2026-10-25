@@ -6,30 +6,58 @@ export type TransitionKind = 'route' | 'results'
 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
+/**
+ * The browser only runs a transition's update once it renders the next frame. If it doesn't
+ * (a background tab or pane), the update must still happen: data never waits on animation.
+ */
+export const UPDATE_DEADLINE_MS = 1000
+
 /** View Transitions are a progressive enhancement: unsupported or reduced motion → no animation. */
 export function canTransition(): boolean {
-  return typeof document.startViewTransition === 'function' && !reducedMotion()
+  return (
+    typeof document.startViewTransition === 'function' &&
+    document.visibilityState !== 'hidden' &&
+    !reducedMotion()
+  )
 }
 
 /**
  * Runs a DOM update inside a View Transition when possible, otherwise immediately.
  * With a transition, `update` runs a frame later (after the old state is captured), so callers
- * that guard against stale data must re-check inside it.
+ * that guard against stale data must re-check inside it. `update` runs exactly once.
  */
 export function withViewTransition(kind: TransitionKind, update: () => void | Promise<void>): void {
   if (!canTransition()) {
     void update()
     return
   }
-  const root = document.documentElement
-  root.dataset.transition = kind
-  const transition = document.startViewTransition(async () => {
+
+  let started = false
+  const runUpdate = async () => {
+    if (started) return
+    started = true
     await update()
     await nextTick()
-  })
-  void transition.finished.finally(() => {
-    if (root.dataset.transition === kind) delete root.dataset.transition
-  })
+  }
+
+  const root = document.documentElement
+  root.dataset.transition = kind
+  const transition = document.startViewTransition(runUpdate)
+
+  const deadline = setTimeout(() => {
+    if (started) return
+    transition.skipTransition()
+    void runUpdate()
+  }, UPDATE_DEADLINE_MS)
+
+  // An aborted or skipped animation is not an error: the update itself still applies.
+  transition.ready.catch(() => {})
+  void transition.finished
+    .catch(() => {})
+    .finally(() => {
+      clearTimeout(deadline)
+      if (root.dataset.transition === kind) delete root.dataset.transition
+    })
 }
 
 /**

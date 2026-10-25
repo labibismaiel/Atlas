@@ -3,6 +3,7 @@ import { computed, nextTick, useTemplateRef } from 'vue'
 import { usePlanetSearch } from '@/composables/usePlanetSearch'
 import { useFilms } from '@/composables/useFilms'
 import { pluralize } from '@/utils/format'
+import { withViewTransition } from '@/utils/viewTransition'
 import { ApiError } from '@/api/http'
 import SearchField from '@/components/planets/SearchField.vue'
 import PlanetCard from '@/components/planets/PlanetCard.vue'
@@ -11,7 +12,8 @@ import StatusPanel from '@/components/ui/StatusPanel.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 
 // Container view: owns data and state, hands plain props to presentational components.
-const search = usePlanetSearch()
+// New results animate in (paging, search); see the 'results' rules in styles/_transitions.scss.
+const search = usePlanetSearch({ applyResult: (write) => withViewTransition('results', write) })
 const { state, result, query, error } = search
 const filmsCatalogue = useFilms()
 
@@ -141,7 +143,14 @@ async function changePage(page: number) {
       <div v-if="showGrid && result" class="grid-wrap" :class="{ 'is-stale': isStale }">
         <p v-if="isStale" class="grid-wrap__badge" aria-hidden="true">Updating results…</p>
         <ul class="grid" :aria-busy="isStale" :inert="isStale">
-          <li v-for="planet in result.items" :key="planet.id">
+          <li
+            v-for="(planet, index) in result.items"
+            :key="planet.id"
+            :style="{
+              viewTransitionName: `card-${planet.id}`,
+              viewTransitionClass: `card stagger-${index}`,
+            }"
+          >
             <PlanetCard
               :planet="planet"
               :films="filmsCatalogue.filmsFor(planet.filmIds)"
