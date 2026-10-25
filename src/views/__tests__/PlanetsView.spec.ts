@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 import PlanetsView from '../PlanetsView.vue'
 import { SEARCH_DEBOUNCE_MS } from '@/composables/usePlanetSearch'
 import { resetFilmsCache } from '@/composables/useFilms'
+import { resetPlanetCache } from '@/composables/planetCache'
 import { controlledFetch, flushPromises } from '@/test/fetch'
 import { FILMS, pagedDto, planetDto, planetPage } from '@/test/fixtures'
 
@@ -51,6 +52,7 @@ async function typeAndSettle(text: string) {
 beforeEach(() => {
   vi.useFakeTimers()
   resetFilmsCache()
+  resetPlanetCache()
 })
 
 afterEach(() => {

@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, KeepAlive } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 import { SEARCH_DEBOUNCE_MS, usePlanetSearch } from '../usePlanetSearch'
+import { resetPlanetCache } from '@/composables/planetCache'
 import { controlledFetch, flushPromises } from '@/test/fetch'
 import { planetPage } from '@/test/fixtures'
 
@@ -45,6 +46,7 @@ const planetRequests = (net: ReturnType<typeof controlledFetch>) => net.to('/pla
 
 beforeEach(() => {
   vi.useFakeTimers()
+  resetPlanetCache()
 })
 
 afterEach(() => {
@@ -309,5 +311,68 @@ describe('usePlanetSearch', () => {
       wrapper.unmount()
       expect(inFlight.aborted).toBe(true)
     })
+  })
+})
+
+describe('usePlanetSearch inside <KeepAlive>', () => {
+  async function setupKeptAlive(path = '/') {
+    const net = controlledFetch()
+    let search: Search | undefined
+    const Harness = defineComponent({
+      setup() {
+        search = usePlanetSearch()
+        return () => null
+      },
+    })
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/', component: Harness },
+        { path: '/planets/:id', component: { render: () => null } },
+      ],
+    })
+    await router.push(path)
+    await router.isReady()
+    // Same shape as App.vue: the list survives while a planet is open.
+    mount(
+      {
+        render: () =>
+          h(RouterView, null, {
+            default: ({ Component }: { Component: unknown }) =>
+              h(KeepAlive, null, [h(Component as never)]),
+          }),
+      },
+      { global: { plugins: [router] } },
+    )
+    await flushPromises()
+    return { net, router, search: search! }
+  }
+
+  it('ignores the planet page URL and does not reload when coming back', async () => {
+    const { net, router, search } = await setupKeptAlive('/?search=ho')
+    await net.last.respond(planetPage(['Hoth']))
+
+    await router.push('/planets/4')
+    await flushPromises()
+    expect(search.query.value).toBe('ho')
+
+    await router.back()
+    await flushPromises()
+    expect(planetRequests(net)).toHaveLength(1)
+    expect(search.state.value).toBe('ready')
+  })
+
+  it('drops unsaved typing on leave, so a late debounce cannot navigate away from a planet', async () => {
+    const { net, router, search } = await setupKeptAlive()
+    await net.last.respond(planetPage(TEN))
+
+    search.setInput('hot')
+    await router.push('/planets/4')
+    await flushPromises()
+    await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS * 2)
+
+    expect(router.currentRoute.value.fullPath).toBe('/planets/4')
+    expect(planetRequests(net)).toHaveLength(1)
+    expect(search.input.value).toBe('')
   })
 })

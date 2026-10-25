@@ -1,10 +1,11 @@
-import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onDeactivated, onScopeDispose, ref, shallowRef, watch } from 'vue'
+import { useRoute, useRouter, type LocationQuery } from 'vue-router'
 import { fetchPlanets } from '@/api/swapi'
 import { isAbortError } from '@/api/http'
 import type { Page, Planet } from '@/models'
 import { createLatestRequest } from '@/utils/latestRequest'
 import { normalizeSearch, readPage, readSearch, toListQuery } from '@/utils/query'
+import { rememberPlanets } from './planetCache'
 
 export const SEARCH_DEBOUNCE_MS = 300
 
@@ -20,6 +21,15 @@ interface ResolvedPage extends Page<Planet> {
   query: string
 }
 
+export interface PlanetSearchOptions {
+  /**
+   * How a resolved page is written to state. Defaults to immediately; the view passes a View
+   * Transition here so new results animate in. The write may run a frame later, so it
+   * re-checks that its request is still current.
+   */
+  applyResult?: (write: () => void) => void
+}
+
 /**
  * Server-side planet search with pagination, backed by the URL (`?search=&page=`).
  *
@@ -27,14 +37,22 @@ interface ResolvedPage extends Page<Planet> {
  * URL after {@link SEARCH_DEBOUNCE_MS} of inactivity, so the URL is never a half-typed word.
  * Any change of the URL (typing, paging, back/forward, a pasted link) loads through one path.
  */
-export function usePlanetSearch() {
+export function usePlanetSearch({ applyResult = (write) => write() }: PlanetSearchOptions = {}) {
   const route = useRoute()
   const router = useRouter()
 
-  // The route this list lives on; ignore URL changes that are navigations away from it.
+  // The route this list lives on. The view is kept alive while a planet is open, so the list
+  // query is frozen while the user is elsewhere; it must not read the detail page's URL.
   const listPath = route.path
-  const query = computed(() => readSearch(route.query))
-  const page = computed(() => readPage(route.query))
+  const listQuery = shallowRef<LocationQuery>(route.query)
+  watch(
+    () => route.query,
+    (next) => {
+      if (route.path === listPath) listQuery.value = next
+    },
+  )
+  const query = computed(() => readSearch(listQuery.value))
+  const page = computed(() => readPage(listQuery.value))
 
   const input = ref(query.value)
   const result = shallowRef<ResolvedPage | null>(null)
@@ -66,7 +84,10 @@ export function usePlanetSearch() {
     try {
       const data = await fetchPlanets({ search, page: pageNumber }, { signal: ticket.signal })
       if (!ticket.isCurrent()) return
-      result.value = { ...data, query: search }
+      rememberPlanets(data.items)
+      applyResult(() => {
+        if (ticket.isCurrent()) result.value = { ...data, query: search }
+      })
     } catch (caught) {
       if (!ticket.isCurrent() || isAbortError(caught)) return
       error.value = caught instanceof Error ? caught : new Error(String(caught))
@@ -89,6 +110,7 @@ export function usePlanetSearch() {
 
   /** Move the URL to (search, page), or reload in place when the URL already matches. */
   function commit(search: string, pageNumber: number, history: 'push' | 'replace'): void {
+    if (route.path !== listPath) return // e.g. a late timer after navigating to a planet
     if (search === query.value && pageNumber === page.value) {
       if (!isCurrentResult.value || error.value || !result.value) void load(search, pageNumber)
       return
@@ -134,7 +156,6 @@ export function usePlanetSearch() {
   watch(
     [query, page],
     ([search, pageNumber]) => {
-      if (route.path !== listPath) return
       // Back/forward or a pasted link: reflect the URL in the field, dropping unsaved typing.
       if (normalizeSearch(input.value) !== search) {
         cancelDebounce()
@@ -144,6 +165,12 @@ export function usePlanetSearch() {
     },
     { immediate: true },
   )
+
+  // Leaving for a planet page (the view stays alive): drop unsaved typing and pending work.
+  onDeactivated(() => {
+    cancelPending()
+    input.value = query.value
+  })
 
   onScopeDispose(() => {
     cancelDebounce()

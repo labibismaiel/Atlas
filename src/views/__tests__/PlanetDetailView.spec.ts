@@ -4,6 +4,8 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 import { createRouter, createWebHistory, RouterView } from 'vue-router'
 import PlanetDetailView from '../PlanetDetailView.vue'
 import { resetFilmsCache } from '@/composables/useFilms'
+import { rememberPlanets, resetPlanetCache } from '@/composables/planetCache'
+import { toPlanet } from '@/api/mappers'
 import { controlledFetch, flushPromises } from '@/test/fetch'
 import { FILMS, pagedDto, personDto, planetDto } from '@/test/fixtures'
 
@@ -31,6 +33,7 @@ const text = () => wrapper!.text()
 
 beforeEach(() => {
   resetFilmsCache()
+  resetPlanetCache()
   // Start every test as if the page had been opened directly on a planet URL.
   window.history.replaceState(null, '', '/planets/1')
 })
@@ -130,5 +133,14 @@ describe('PlanetDetailView', () => {
   it('links back to the first page when opened directly', async () => {
     await setup('/planets/1')
     expect(wrapper!.get('a').attributes('href')).toBe('/')
+  })
+
+  it('renders a planet already shown in the list without requesting it again', async () => {
+    rememberPlanets([toPlanet(planetDto({ id: 1 }))])
+    const { net } = await setup()
+
+    expect(wrapper!.get('h1').text()).toBe('Tatooine')
+    expect(net.to('/planets/')).toHaveLength(0)
+    expect(net.to('/people/')).toHaveLength(2) // residents still load
   })
 })

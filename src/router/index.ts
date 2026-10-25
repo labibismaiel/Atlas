@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import PlanetsView from '@/views/PlanetsView.vue'
+import { installRouteTransitions } from '@/utils/viewTransition'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -34,6 +35,8 @@ const router = createRouter({
     return { top: 0 }
   },
 })
+
+installRouteTransitions(router)
 
 router.afterEach((to) => {
   const title = typeof to.meta.title === 'string' ? to.meta.title : null

@@ -25,7 +25,13 @@ watch(
   <div class="app">
     <AppHeader />
     <main id="main" ref="main" class="app__main" tabindex="-1">
-      <RouterView />
+      <!-- The list stays alive while a planet is open: Back restores it instantly, at the same
+           scroll position, and its cards are there for the detail → list morph. -->
+      <RouterView v-slot="{ Component }">
+        <KeepAlive include="PlanetsView">
+          <component :is="Component" />
+        </KeepAlive>
+      </RouterView>
     </main>
     <AppFooter />
   </div>

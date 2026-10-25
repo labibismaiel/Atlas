@@ -106,7 +106,16 @@ watch(planet, (value) => {
       <section class="hero" aria-labelledby="planet-name">
         <div class="hero__text">
           <p class="hero__eyebrow">Planet No. {{ planet.id.padStart(2, '0') }}</p>
-          <h1 id="planet-name" class="hero__name">{{ planet.name }}</h1>
+          <h1
+            id="planet-name"
+            class="hero__name"
+            :style="{
+              viewTransitionName: `planet-name-${planet.id}`,
+              viewTransitionClass: 'planet-name',
+            }"
+          >
+            {{ planet.name }}
+          </h1>
           <FactList :facts="keyFacts" class="hero__facts" />
           <div class="hero__rule" aria-hidden="true"><span /><span /><span /></div>
           <p class="hero__summary">{{ describePlanet(planet) }}</p>
@@ -125,7 +134,12 @@ watch(planet, (value) => {
             <span class="orbit__ring orbit__ring--outer"><i /></span>
             <span class="orbit__ring orbit__ring--inner"><i /></span>
           </div>
-          <PlanetArt :planet="planet" size="lg" class="hero__art" />
+          <PlanetArt
+            :planet="planet"
+            size="lg"
+            class="hero__art"
+            :style="{ viewTransitionName: `planet-art-${planet.id}` }"
+          />
           <p class="hero__caption">Artist's impression · {{ appearanceFor(planet).label }}</p>
         </div>
       </section>

@@ -3,6 +3,7 @@ import { fetchPerson, fetchPlanet } from '@/api/swapi'
 import { ApiError, isAbortError } from '@/api/http'
 import type { Person, Planet } from '@/models'
 import { createLatestRequest, type RequestTicket } from '@/utils/latestRequest'
+import { cachedPlanet, rememberPlanets } from './planetCache'
 
 export type PlanetState = 'loading' | 'ready' | 'not-found' | 'error'
 
@@ -39,9 +40,20 @@ export function usePlanet(id: Ref<string>) {
     planet.value = null
     residents.value = null
     missingResidents.value = 0
+
+    // Opened from the list: the planet is already known, render it without a round trip.
+    const known = cachedPlanet(id.value)
+    if (known) {
+      planet.value = known
+      state.value = 'ready'
+      void loadResidents(known.residentIds, ticket)
+      return
+    }
+
     try {
       const data = await fetchPlanet(id.value, { signal: ticket.signal })
       if (!ticket.isCurrent()) return
+      rememberPlanets([data])
       planet.value = data
       state.value = 'ready'
       // Residents are secondary: the page renders now and the names fill in when they arrive.

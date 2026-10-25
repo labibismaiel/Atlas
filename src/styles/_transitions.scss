@@ -1,0 +1,50 @@
+// View Transitions (progressive enhancement, see src/utils/viewTransition.ts).
+// Browsers without support simply update instantly; reduced motion never starts a transition.
+
+// The sticky header is identical on every page: keep it out of the page cross-fade.
+.header {
+  view-transition-name: site-header;
+}
+
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+// Page changes (list ↔ detail): the planet art and name fly between card and hero while the
+// rest of the page cross-fades.
+:root[data-transition='route'] {
+  &::view-transition-group(*) {
+    animation-duration: 520ms;
+    animation-timing-function: var(--ease-out);
+  }
+
+  &::view-transition-old(root) {
+    animation: 220ms ease-in both fade-out;
+  }
+
+  &::view-transition-new(root) {
+    animation: 380ms var(--ease-out) 120ms both fade-in;
+  }
+}
+
+// Text scales uniformly from card title to page title instead of stretching to the new box.
+::view-transition-old(.planet-name),
+::view-transition-new(.planet-name) {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}

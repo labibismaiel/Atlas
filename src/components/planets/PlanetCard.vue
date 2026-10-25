@@ -21,9 +21,22 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
       <span class="card__climate">{{ formatList(planet.climates) }}</span>
     </header>
 
-    <PlanetArt class="card__art" :planet="planet" size="sm" />
+    <!-- Shared-element names: the art and name morph into the detail page's hero. -->
+    <PlanetArt
+      class="card__art"
+      :planet="planet"
+      size="sm"
+      :style="{ viewTransitionName: `planet-art-${planet.id}` }"
+    />
 
-    <h3 :id="headingId" class="card__name">
+    <h3
+      :id="headingId"
+      class="card__name"
+      :style="{
+        viewTransitionName: `planet-name-${planet.id}`,
+        viewTransitionClass: 'planet-name',
+      }"
+    >
       <RouterLink :to="{ name: 'planet', params: { id: planet.id } }" class="card__link">
         {{ planet.name }}
       </RouterLink>
