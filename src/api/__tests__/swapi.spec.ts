@@ -5,7 +5,7 @@ import { filmDto, pagedDto, personDto, planetDto, planetPage } from '@/test/fixt
 import { jsonResponse } from '@/test/fetch'
 
 function stubFetch(...responses: Array<Response | Error | DOMException>) {
-  const fetchMock = vi.fn()
+  const fetchMock = vi.fn<typeof fetch>()
   for (const response of responses) {
     if (response instanceof Response) fetchMock.mockResolvedValueOnce(response)
     else fetchMock.mockRejectedValueOnce(response)

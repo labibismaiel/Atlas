@@ -6,7 +6,7 @@ describe('mappers', () => {
   it('extracts ids from SWAPI resource URLs with or without a trailing slash', () => {
     expect(idFromUrl('https://swapi.dev/api/planets/7/')).toBe('7')
     expect(idFromUrl('https://swapi.dev/api/people/42')).toBe('42')
-    expect(() => idFromUrl('https://swapi.dev/api/planets/')).toThrow()
+    expect(() => idFromUrl('https://swapi.dev/api/planets/')).toThrow('Unexpected SWAPI resource URL')
   })
 
   it('parses numbers and treats unknown values as null', () => {

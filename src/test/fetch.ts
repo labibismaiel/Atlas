@@ -24,7 +24,7 @@ export interface PendingRequest {
 export function controlledFetch() {
   const requests: PendingRequest[] = []
 
-  const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+  const fetchMock = vi.fn<typeof fetch>((input, init) => {
     const signal = init?.signal ?? undefined
     return new Promise<Response>((resolve, reject) => {
       const settle = async (action: () => void) => {
