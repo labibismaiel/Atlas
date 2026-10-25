@@ -12,6 +12,7 @@ export default mergeConfig(
       restoreMocks: true,
       unstubGlobals: true,
       passWithNoTests: true,
+      setupFiles: ['src/test/setup.ts'],
     },
   }),
 )
