@@ -21,8 +21,13 @@ export function planetDto(overrides: Partial<PlanetDto> & { id?: number } = {}):
   }
 }
 
-export function filmDto(id: number, title: string, episode = id): FilmDto {
-  return { title, episode_id: episode, release_date: '1977-05-25', url: `${API}/films/${id}/` }
+export function filmDto(
+  id: number,
+  title: string,
+  episode = id,
+  releaseDate = '1977-05-25',
+): FilmDto {
+  return { title, episode_id: episode, release_date: releaseDate, url: `${API}/films/${id}/` }
 }
 
 export function personDto(id: number, name: string): PersonDto {
@@ -45,7 +50,7 @@ export function planetPage(names: string[], meta: Partial<PagedResponseDto<Plane
 }
 
 export const FILMS = [
-  filmDto(1, 'A New Hope', 4),
-  filmDto(2, 'The Empire Strikes Back', 5),
-  filmDto(3, 'Return of the Jedi', 6),
+  filmDto(1, 'A New Hope', 4, '1977-05-25'),
+  filmDto(2, 'The Empire Strikes Back', 5, '1980-05-17'),
+  filmDto(3, 'Return of the Jedi', 6, '1983-05-25'),
 ]

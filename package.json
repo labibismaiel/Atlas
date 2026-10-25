@@ -14,7 +14,8 @@
     "lint:eslint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check": "npm run type-check && npm run lint && npm run test"
   },
   "dependencies": {
     "@fontsource-variable/source-sans-3": "^5.3.1",
