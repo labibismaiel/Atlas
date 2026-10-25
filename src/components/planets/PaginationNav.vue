@@ -43,12 +43,16 @@ const emit = defineEmits<{ change: [page: number] }>()
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   margin-top: var(--space-6);
+
+  @include up(sm) {
+    gap: var(--space-4);
+  }
 }
 
 .pagination__status {
-  min-width: 7rem;
+  white-space: nowrap;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   text-align: center;

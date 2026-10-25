@@ -125,6 +125,11 @@ export function usePlanetSearch() {
     void load(query.value, page.value)
   }
 
+  /** Keep the query, go back to page 1 (e.g. after landing on a page that does not exist). */
+  function firstPage(): void {
+    commit(query.value, 1, 'replace')
+  }
+
   // Single loading path for every URL change, including the initial render.
   watch(
     [query, page],
@@ -158,6 +163,7 @@ export function usePlanetSearch() {
     setInput,
     clear,
     goToPage,
+    firstPage,
     retry,
   }
 }

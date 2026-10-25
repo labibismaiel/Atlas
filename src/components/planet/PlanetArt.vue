@@ -135,7 +135,7 @@ const surfaceMatrix = computed(() => {
       </filter>
 
       <filter :id="id('blur')" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="6" />
+        <feGaussianBlur stdDeviation="4" />
       </filter>
 
       <pattern
@@ -206,7 +206,8 @@ const surfaceMatrix = computed(() => {
   width: 100%;
   height: auto;
   aspect-ratio: 1;
-  overflow: visible;
+  // The halo fits inside the viewBox; anything else (the off-screen surface tile) is clipped.
+  overflow: hidden;
 }
 
 .art__halo {

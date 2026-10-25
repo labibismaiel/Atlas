@@ -1,4 +1,7 @@
-export type ApiErrorKind = 'network' | 'http' | 'not-found' | 'parse'
+export type ApiErrorKind = 'network' | 'timeout' | 'http' | 'not-found' | 'parse'
+
+/** SWAPI occasionally hangs instead of failing; give up and let the user retry. */
+export const REQUEST_TIMEOUT_MS = 15_000
 
 /**
  * A genuine request failure, normalised so the UI can choose a message without
@@ -28,33 +31,69 @@ export function isAbortError(error: unknown): boolean {
 
 export interface RequestOptions {
   signal?: AbortSignal
+  timeoutMs?: number
 }
 
-/** GET a JSON resource. Throws {@link ApiError} on failure, or the original AbortError when cancelled. */
-export async function getJson<T>(url: string, { signal }: RequestOptions = {}): Promise<T> {
-  let response: Response
-  try {
-    response = await fetch(url, { signal, headers: { Accept: 'application/json' } })
-  } catch (error) {
+/**
+ * GET a JSON resource. Throws {@link ApiError} on failure (including a timeout), or the
+ * original AbortError when the caller cancels.
+ */
+export async function getJson<T>(
+  url: string,
+  { signal, timeoutMs = REQUEST_TIMEOUT_MS }: RequestOptions = {},
+): Promise<T> {
+  // One controller per request, aborted by either the caller or the timeout.
+  const controller = new AbortController()
+  let timedOut = false
+  const timer = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, timeoutMs)
+  const onCallerAbort = () => {
+    clearTimeout(timer)
+    controller.abort()
+  }
+  if (signal?.aborted) onCallerAbort()
+  else signal?.addEventListener('abort', onCallerAbort, { once: true })
+
+  const fail = (error: unknown, fallback: ApiError): never => {
+    if (timedOut) throw new ApiError('timeout', 'The server took too long to respond.')
     if (isAbortError(error)) throw error
-    throw new ApiError('network', 'Could not reach the server. Check your connection.')
+    throw fallback
   }
 
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new ApiError('not-found', 'The requested resource does not exist.', 404)
+  try {
+    let response: Response
+    try {
+      response = await fetch(url, {
+        signal: controller.signal,
+        headers: { Accept: 'application/json' },
+      })
+    } catch (error) {
+      return fail(
+        error,
+        new ApiError('network', 'Could not reach the server. Check your connection.'),
+      )
     }
-    throw new ApiError(
-      'http',
-      `The server responded with an error (${response.status}).`,
-      response.status,
-    )
-  }
 
-  try {
-    return (await response.json()) as T
-  } catch (error) {
-    if (isAbortError(error)) throw error
-    throw new ApiError('parse', 'The server sent a response we could not read.')
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new ApiError('not-found', 'The requested resource does not exist.', 404)
+      }
+      throw new ApiError(
+        'http',
+        `The server responded with an error (${response.status}).`,
+        response.status,
+      )
+    }
+
+    try {
+      return (await response.json()) as T
+    } catch (error) {
+      return fail(error, new ApiError('parse', 'The server sent a response we could not read.'))
+    }
+  } finally {
+    clearTimeout(timer)
+    signal?.removeEventListener('abort', onCallerAbort)
   }
 }

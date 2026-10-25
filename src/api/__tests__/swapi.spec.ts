@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fetchFilms, fetchPerson, fetchPlanet, fetchPlanets, planetsUrl } from '../swapi'
-import { ApiError, isAbortError } from '../http'
+import { ApiError, isAbortError, REQUEST_TIMEOUT_MS } from '../http'
 import { filmDto, pagedDto, personDto, planetDto, planetPage } from '@/test/fixtures'
-import { jsonResponse } from '@/test/fetch'
+import { controlledFetch, jsonResponse } from '@/test/fetch'
 
 function stubFetch(...responses: Array<Response | Error | DOMException>) {
   const fetchMock = vi.fn<typeof fetch>()
@@ -30,14 +30,10 @@ describe('planetsUrl', () => {
 describe('swapi service', () => {
   it('requests planets server-side and maps the page', async () => {
     const fetchMock = stubFetch(jsonResponse(planetPage(['Hoth'], { count: 1 })))
-    const controller = new AbortController()
 
-    const page = await fetchPlanets({ search: 'hoth' }, { signal: controller.signal })
+    const page = await fetchPlanets({ search: 'hoth' })
 
-    expect(fetchMock).toHaveBeenCalledWith('https://swapi.dev/api/planets/?search=hoth', {
-      signal: controller.signal,
-      headers: { Accept: 'application/json' },
-    })
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://swapi.dev/api/planets/?search=hoth')
     expect(page.items.map((planet) => planet.name)).toEqual(['Hoth'])
     expect(page.total).toBe(1)
   })
@@ -81,5 +77,43 @@ describe('swapi service', () => {
     const error = await fetchPlanets().catch((e: unknown) => e)
     expect(isAbortError(error)).toBe(true)
     expect(error).not.toBeInstanceOf(ApiError)
+  })
+})
+
+describe('request lifecycle', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('propagates the caller abort to the underlying request', async () => {
+    const net = controlledFetch()
+    const controller = new AbortController()
+    const pending = fetchPlanets({}, { signal: controller.signal }).catch((e: unknown) => e)
+
+    controller.abort()
+
+    expect(net.last.aborted).toBe(true)
+    expect(isAbortError(await pending)).toBe(true)
+  })
+
+  it('gives up after the timeout with a retryable ApiError, not an AbortError', async () => {
+    vi.useFakeTimers()
+    const net = controlledFetch()
+    const pending = fetchPlanets().catch((e: unknown) => e)
+
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS)
+
+    expect(net.last.aborted).toBe(true)
+    expect(await pending).toMatchObject({ name: 'ApiError', kind: 'timeout' })
+  })
+
+  it('leaves no timer behind once a request settles', async () => {
+    vi.useFakeTimers()
+    const net = controlledFetch()
+    const pending = fetchPlanets()
+    expect(vi.getTimerCount()).toBe(1)
+    await net.last.respond(planetPage(['Hoth']))
+    await pending
+    expect(vi.getTimerCount()).toBe(0)
   })
 })

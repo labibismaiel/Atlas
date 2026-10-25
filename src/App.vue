@@ -1,13 +1,30 @@
 <script setup lang="ts">
+import { nextTick, useTemplateRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+
+const route = useRoute()
+const main = useTemplateRef<HTMLElement>('main')
+
+// SPA navigation does not move focus like a page load does. After a page change, move it to
+// the content so keyboard and screen reader users start there. Query-only changes (search,
+// paging) keep focus where it is.
+watch(
+  () => route.path,
+  async (_path, previous) => {
+    if (previous === undefined) return
+    await nextTick()
+    main.value?.focus({ preventScroll: true })
+  },
+)
 </script>
 
 <template>
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="app">
     <AppHeader />
-    <main id="main" class="app__main" tabindex="-1">
+    <main id="main" ref="main" class="app__main" tabindex="-1">
       <RouterView />
     </main>
     <AppFooter />

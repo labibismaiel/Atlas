@@ -3,6 +3,7 @@ import { computed, nextTick, useTemplateRef } from 'vue'
 import { usePlanetSearch } from '@/composables/usePlanetSearch'
 import { useFilms } from '@/composables/useFilms'
 import { pluralize } from '@/utils/format'
+import { ApiError } from '@/api/http'
 import SearchField from '@/components/planets/SearchField.vue'
 import PlanetCard from '@/components/planets/PlanetCard.vue'
 import PaginationNav from '@/components/planets/PaginationNav.vue'
@@ -19,6 +20,15 @@ const resultsHeading = useTemplateRef<HTMLElement>('resultsHeading')
 
 const filmsStatus = computed(() =>
   filmsCatalogue.films.value ? 'ready' : filmsCatalogue.failed.value ? 'failed' : 'loading',
+)
+
+/** A stale or hand-edited `?page=` beyond the last page: SWAPI answers 404. */
+const isMissingPage = computed(
+  () =>
+    state.value === 'error' &&
+    error.value instanceof ApiError &&
+    error.value.kind === 'not-found' &&
+    search.page.value > 1,
 )
 
 /** Results are on screen but no longer describe what is being asked for. */
@@ -102,6 +112,13 @@ async function changePage(page: number) {
       <ul v-if="state === 'loading'" class="grid" aria-hidden="true">
         <li v-for="n in 6" :key="n" class="skeleton" />
       </ul>
+
+      <StatusPanel v-else-if="isMissingPage" :title="`Page ${search.page.value} doesn't exist`">
+        <p>There are fewer results than that. The first page is a good place to start.</p>
+        <template #actions>
+          <AppButton variant="primary" @click="search.firstPage">Go to page 1</AppButton>
+        </template>
+      </StatusPanel>
 
       <StatusPanel
         v-else-if="state === 'error'"
@@ -253,13 +270,17 @@ async function changePage(page: number) {
   }
 }
 
+// minmax(0, 1fr): grid items default to min-width: auto, which lets the search input's
+// intrinsic width push the page wider than a phone screen.
 .results {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
 }
 
 .toolbar {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
 
   @include up(md) {

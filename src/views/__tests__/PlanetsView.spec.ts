@@ -183,4 +183,15 @@ describe('PlanetsView', () => {
     expect(router.currentRoute.value.query).toEqual({ search: 'o', page: '2' })
     expect(lastPlanets().url).toBe('https://swapi.dev/api/planets/?search=o&page=2')
   })
+
+  it('offers a way back from a page beyond the last one', async () => {
+    const { lastPlanets, router } = await setup('/?search=o&page=9')
+    await lastPlanets().respond({ detail: 'Not found' }, 404)
+
+    expect(wrapper!.text()).toContain("Page 9 doesn't exist")
+    await wrapper!.get('.panel button').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.query).toEqual({ search: 'o' })
+    expect(lastPlanets().url).toBe('https://swapi.dev/api/planets/?search=o')
+  })
 })
