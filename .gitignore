@@ -43,3 +43,7 @@ __screenshots__/
 
 *storybook.log
 storybook-static
+
+# Personal working notes, kept locally only
+docs/assignment/PROMPT.md
+docs/assignment/plan.md

@@ -88,7 +88,7 @@ src/
   styles/         tokens (CSS custom properties) + Sass mixins/breakpoints
 docs/
   decisions/      architecture decision records (ADRs)
-  assignment/     the brief and the search specification
+  assignment/     the assignment brief (Task.pdf)
   design/         design direction references
 ```
 
