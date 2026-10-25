@@ -165,6 +165,9 @@ async function changePage(page: number) {
 <style scoped lang="scss">
 .hero {
   position: relative;
+  // The decorative orbit bleeds past the right edge on tablets; clip it without
+  // creating a scroll container.
+  overflow-x: clip;
   display: grid;
   gap: var(--space-4);
   padding-block: var(--space-7) var(--space-7);

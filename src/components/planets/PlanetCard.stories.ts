@@ -26,3 +26,20 @@ export const FilmsLoading: Story = { args: { films: [], filmsStatus: 'loading' }
 export const FilmsUnavailable: Story = { args: { films: [], filmsStatus: 'failed' } }
 
 export const NotInAnyFilm: Story = { args: { planet: planetWithoutFilms, films: [] } }
+
+/**
+ * Layout stress case at the narrowest grid column: a long one-word name, a long climate
+ * (truncated with an ellipsis) and no films, so footer text sits next to the arrow.
+ */
+export const LongContentNarrow: Story = {
+  args: {
+    planet: {
+      ...planetWithoutFilms,
+      id: '29',
+      name: 'Muunilinst',
+      climates: ['arid', 'temperate', 'tropical'],
+    },
+    films: [],
+  },
+  decorators: [() => ({ template: '<div style="width: 15rem; display: grid"><story /></div>' })],
+}

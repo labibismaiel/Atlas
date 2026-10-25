@@ -30,25 +30,28 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
     </h3>
     <p class="card__terrain">{{ formatList(planet.terrains) }}</p>
 
-    <div class="card__films">
-      <h4 class="card__films-label">Appears in</h4>
-      <ul v-if="filmsStatus === 'ready' && films.length" class="card__film-list">
-        <li v-for="film in films" :key="film.id" class="chip">{{ film.title }}</li>
-      </ul>
-      <p v-else-if="filmsStatus === 'ready' || planet.filmIds.length === 0" class="card__muted">
-        Not featured in any film
-      </p>
-      <p v-else-if="filmsStatus === 'failed'" class="card__muted">
-        Film titles unavailable ({{ planet.filmIds.length }} films)
-      </p>
-      <ul v-else class="card__film-list" aria-label="Loading film titles">
-        <li v-for="id in planet.filmIds" :key="id" class="chip chip--skeleton" />
-      </ul>
-    </div>
+    <!-- The arrow sits beside the film list in normal flow, so no content can run under it. -->
+    <footer class="card__footer">
+      <div class="card__films">
+        <h4 class="card__films-label">Appears in</h4>
+        <ul v-if="filmsStatus === 'ready' && films.length" class="card__film-list">
+          <li v-for="film in films" :key="film.id" class="chip">{{ film.title }}</li>
+        </ul>
+        <p v-else-if="filmsStatus === 'ready' || planet.filmIds.length === 0" class="card__muted">
+          Not featured in any film
+        </p>
+        <p v-else-if="filmsStatus === 'failed'" class="card__muted">
+          Film titles unavailable ({{ planet.filmIds.length }} films)
+        </p>
+        <ul v-else class="card__film-list" aria-label="Loading film titles">
+          <li v-for="id in planet.filmIds" :key="id" class="chip chip--skeleton" />
+        </ul>
+      </div>
 
-    <span class="card__arrow" aria-hidden="true">
-      <svg viewBox="0 0 24 24"><path d="M8 16 16 8M9 8h7v7" /></svg>
-    </span>
+      <span class="card__arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M8 16 16 8M9 8h7v7" /></svg>
+      </span>
+    </footer>
   </article>
 </template>
 
@@ -58,6 +61,9 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  // Without this the card's min-content (the nowrap climate line) can outgrow narrow screens.
+  min-width: 0;
+  container-type: inline-size;
   padding: var(--space-5);
   @include glass;
   transition:
@@ -106,9 +112,11 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
 }
 
 .card__name {
-  font-size: var(--text-lg);
+  // Scales down with the card so ten-letter names ("Muunilinst") fit narrow columns.
+  font-size: min(var(--text-lg), 8.5cqi);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  overflow-wrap: break-word;
 }
 
 // Stretched link: the whole card is clickable, but only the name is announced as a link.
@@ -135,12 +143,20 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
   font-size: var(--text-sm);
 }
 
-.card__films {
-  display: grid;
-  gap: var(--space-2);
+.card__footer {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
   margin-top: auto;
   padding-top: var(--space-4);
   border-top: 1px solid var(--border-subtle);
+}
+
+.card__films {
+  display: grid;
+  flex: 1;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .card__films-label {
@@ -153,7 +169,6 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
   flex-wrap: wrap;
   gap: var(--space-2);
   padding: 0;
-  padding-right: 2.5rem; // room for the arrow
   list-style: none;
 }
 
@@ -183,9 +198,7 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
 }
 
 .card__arrow {
-  position: absolute;
-  right: var(--space-5);
-  bottom: var(--space-5);
+  flex: none;
   display: grid;
   place-items: center;
   width: 2.25rem;
