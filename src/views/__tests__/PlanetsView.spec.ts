@@ -38,6 +38,8 @@ async function setup(path = '/') {
 const input = () => wrapper!.get<HTMLInputElement>('input[type="search"]')
 const cardNames = () => wrapper!.findAll('.card__name').map((node) => node.text())
 const count = () => wrapper!.get('.toolbar__count').text()
+const nextPage = () =>
+  wrapper!.findAll('.pagination button').find((b) => b.text().startsWith('Next'))!
 const liveRegion = () => wrapper!.get('[role="status"]').text()
 
 async function typeAndSettle(text: string) {
@@ -106,7 +108,7 @@ describe('PlanetsView', () => {
     expect(liveRegion()).toBe('')
     expect(wrapper!.get('ul.grid').attributes('aria-busy')).toBe('true')
     expect(wrapper!.text()).toContain('Updating results…')
-    expect(wrapper!.get('button[aria-label="Next page"]').attributes('disabled')).toBeDefined()
+    expect(nextPage().attributes('disabled')).toBeDefined()
   })
 
   it('shows skeletons while the first page loads', async () => {
@@ -177,7 +179,7 @@ describe('PlanetsView', () => {
     const { lastPlanets, router } = await setup('/?search=o')
     await lastPlanets().respond(planetPage(TEN, { count: 23, next: 'n' }))
 
-    await wrapper!.get('button[aria-label="Next page"]').trigger('click')
+    await nextPage().trigger('click')
     await flushPromises()
 
     expect(router.currentRoute.value.query).toEqual({ search: 'o', page: '2' })

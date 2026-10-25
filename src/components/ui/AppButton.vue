@@ -15,7 +15,7 @@ withDefaults(defineProps<{ variant?: 'primary' | 'ghost' }>(), { variant: 'ghost
   justify-content: center;
   gap: var(--space-2);
   min-height: 2.75rem;
-  padding: 0 var(--space-5);
+  padding: 0 var(--space-4);
   border-radius: var(--radius-pill);
   font-family: var(--font-display);
   font-size: var(--text-2xs);
@@ -27,6 +27,10 @@ withDefaults(defineProps<{ variant?: 'primary' | 'ghost' }>(), { variant: 'ghost
     color var(--duration-fast),
     opacity var(--duration-fast);
   @include focus-ring;
+
+  @include up(sm) {
+    padding-inline: var(--space-5);
+  }
 
   &:disabled {
     cursor: not-allowed;

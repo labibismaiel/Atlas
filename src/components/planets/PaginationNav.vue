@@ -18,22 +18,15 @@ const emit = defineEmits<{ change: [page: number] }>()
 
 <template>
   <nav v-if="pageCount > 1" class="pagination" aria-label="Planet pages">
-    <AppButton
-      :disabled="disabled || !hasPrevious"
-      aria-label="Previous page"
-      @click="emit('change', props.page - 1)"
-    >
-      <span aria-hidden="true">←</span> Prev
+    <!-- Named by visible text (WCAG 2.5.3 label in name); " page" is for screen readers. -->
+    <AppButton :disabled="disabled || !hasPrevious" @click="emit('change', props.page - 1)">
+      <span aria-hidden="true">←</span> Previous<span class="visually-hidden"> page</span>
     </AppButton>
     <p class="pagination__status">
       Page <strong>{{ page }}</strong> of {{ pageCount }}
     </p>
-    <AppButton
-      :disabled="disabled || !hasNext"
-      aria-label="Next page"
-      @click="emit('change', props.page + 1)"
-    >
-      Next <span aria-hidden="true">→</span>
+    <AppButton :disabled="disabled || !hasNext" @click="emit('change', props.page + 1)">
+      Next<span class="visually-hidden"> page</span> <span aria-hidden="true">→</span>
     </AppButton>
   </nav>
 </template>
@@ -41,6 +34,7 @@ const emit = defineEmits<{ change: [page: number] }>()
 <style scoped lang="scss">
 .pagination {
   display: flex;
+  flex-wrap: wrap; // very narrow screens: the page status drops below the buttons
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
