@@ -1,5 +1,5 @@
 import type { Planet } from '@/models'
-import { formatInteger } from './format'
+import { formatInteger, formatReadable } from './format'
 
 const article = (word: string) => (/^[aeiou]/i.test(word) ? 'an' : 'a')
 
@@ -30,7 +30,7 @@ export function describePlanet(planet: Planet): string {
   if (cycle.length) sentences.push(`It has ${cycle.join(' and ')}.`)
 
   if (planet.population) {
-    sentences.push(`Around ${formatInteger(planet.population)} people call it home.`)
+    sentences.push(`Around ${formatReadable(planet.population)} people call it home.`)
   } else if (planet.population === 0) {
     sentences.push('No permanent population is recorded.')
   }

@@ -6,6 +6,7 @@ import { useFilms } from '@/composables/useFilms'
 import { describePlanet } from '@/utils/describePlanet'
 import { episodeLabel, formatList, pluralize, withUnit } from '@/utils/format'
 import PlanetArt from '@/components/planet/PlanetArt.vue'
+import { appearanceFor } from '@/components/planet/appearance'
 import FactList, { type Fact } from '@/components/planet/FactList.vue'
 import StatusPanel from '@/components/ui/StatusPanel.vue'
 import AppButton from '@/components/ui/AppButton.vue'
@@ -125,6 +126,7 @@ watch(planet, (value) => {
             <span class="orbit__ring orbit__ring--inner"><i /></span>
           </div>
           <PlanetArt :planet="planet" size="lg" class="hero__art" />
+          <p class="hero__caption">Artist's impression · {{ appearanceFor(planet).label }}</p>
         </div>
       </section>
 
@@ -304,6 +306,13 @@ watch(planet, (value) => {
 
 .hero__art {
   width: 64%;
+}
+
+.hero__caption {
+  position: absolute;
+  bottom: 2%;
+  @include eyebrow;
+  color: var(--color-text-faint);
 }
 
 .orbit {

@@ -76,6 +76,10 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
       transform: translateY(-3px);
     }
   }
+
+  &:hover :deep(.art__spin) {
+    animation-play-state: running;
+  }
 }
 
 .card__top {
@@ -85,7 +89,12 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
   @include eyebrow;
 }
 
+.card__index {
+  flex: none;
+}
+
 .card__climate {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

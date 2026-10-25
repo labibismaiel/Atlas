@@ -1,5 +1,4 @@
 const integer = new Intl.NumberFormat('en')
-const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
 
 /** "23 planets", "1 planet". */
 export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
@@ -10,9 +9,11 @@ export function formatInteger(value: number): string {
   return integer.format(value)
 }
 
-/** 1000000000 → "1B". Used where space is tight. */
-export function formatCompact(value: number): string {
-  return compact.format(value)
+const compactLong = new Intl.NumberFormat('en', { notation: 'compact', compactDisplay: 'long' })
+
+/** Prose-friendly: 200000 stays "200,000", 1000000000000 becomes "1 trillion". */
+export function formatReadable(value: number): string {
+  return value >= 1_000_000 ? compactLong.format(value) : integer.format(value)
 }
 
 /** Value with a unit, or a dash-free fallback for data SWAPI does not know. */
