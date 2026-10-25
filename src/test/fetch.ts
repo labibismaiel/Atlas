@@ -19,9 +19,11 @@ export interface PendingRequest {
 /**
  * Replaces global `fetch` with a manually controlled fake: every call stays pending until the
  * test resolves or rejects it, so out-of-order responses can be simulated deterministically.
- * Like the real fetch, an aborted signal rejects the promise with an AbortError.
+ * Like the real fetch, an aborted signal rejects the promise with an AbortError. Pass
+ * `honourAbort: false` to model a response that already arrived when abort was called, which is
+ * how the request-version guard is tested independently of AbortController.
  */
-export function controlledFetch() {
+export function controlledFetch({ honourAbort = true } = {}) {
   const requests: PendingRequest[] = []
 
   const fetchMock = vi.fn<typeof fetch>((input, init) => {
@@ -32,9 +34,11 @@ export function controlledFetch() {
         // Let the awaiting code (response.json(), state updates) run before the test continues.
         await flushPromises()
       }
-      signal?.addEventListener('abort', () =>
-        reject(new DOMException('The operation was aborted.', 'AbortError')),
-      )
+      if (honourAbort) {
+        signal?.addEventListener('abort', () =>
+          reject(new DOMException('The operation was aborted.', 'AbortError')),
+        )
+      }
       requests.push({
         url: String(input),
         signal,
@@ -65,5 +69,5 @@ export function controlledFetch() {
 }
 
 export async function flushPromises(): Promise<void> {
-  for (let i = 0; i < 10; i++) await Promise.resolve()
+  for (let i = 0; i < 50; i++) await Promise.resolve()
 }
