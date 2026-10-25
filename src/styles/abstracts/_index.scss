@@ -1,0 +1,3 @@
+// Sass-only helpers (no CSS output). Injected into every component via vite.config.ts.
+@forward 'breakpoints';
+@forward 'mixins';
