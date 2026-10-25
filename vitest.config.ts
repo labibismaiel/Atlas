@@ -13,6 +13,10 @@ export default mergeConfig(
       unstubGlobals: true,
       passWithNoTests: true,
       setupFiles: ['src/test/setup.ts'],
+      coverage: {
+        include: ['src/**/*.{ts,vue}'],
+        exclude: ['src/**/*.stories.ts', 'src/stories/**', 'src/test/**', 'src/main.ts'],
+      },
     },
   }),
 )
