@@ -20,6 +20,8 @@ export interface PlanetDto {
   population: string
   residents: string[]
   films: string[]
+  created: string
+  edited: string
   url: string
 }
 

@@ -37,6 +37,8 @@ describe('mappers', () => {
       population: 200000,
       residentIds: ['1', '2'],
       filmIds: ['1', '3'],
+      createdAt: '2014-12-09T13:50:49.641000Z',
+      editedAt: '2014-12-20T20:58:18.411000Z',
     })
   })
 

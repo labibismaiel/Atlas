@@ -4,7 +4,7 @@ withDefaults(
     tone?: 'neutral' | 'danger'
     title: string
     /** Heading level so the panel fits the page outline it is placed in. */
-    level?: 2 | 3
+    level?: 1 | 2 | 3
   }>(),
   { tone: 'neutral', level: 2 },
 )

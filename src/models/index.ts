@@ -19,6 +19,9 @@ export interface Planet {
   population: number | null
   residentIds: string[]
   filmIds: string[]
+  /** ISO timestamps of the archive record itself. */
+  createdAt: string
+  editedAt: string
 }
 
 export interface Film {

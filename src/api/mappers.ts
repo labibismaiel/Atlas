@@ -46,6 +46,8 @@ export function toPlanet(dto: PlanetDto): Planet {
     population: toNumber(dto.population),
     residentIds: dto.residents.map(idFromUrl),
     filmIds: dto.films.map(idFromUrl),
+    createdAt: dto.created,
+    editedAt: dto.edited,
   }
 }
 

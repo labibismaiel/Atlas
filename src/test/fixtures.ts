@@ -16,6 +16,8 @@ export function planetDto(overrides: Partial<PlanetDto> & { id?: number } = {}):
     population: '200000',
     residents: [`${API}/people/1/`, `${API}/people/2/`],
     films: [`${API}/films/1/`, `${API}/films/3/`],
+    created: '2014-12-09T13:50:49.641000Z',
+    edited: '2014-12-20T20:58:18.411000Z',
     url: `${API}/planets/${id}/`,
     ...rest,
   }
