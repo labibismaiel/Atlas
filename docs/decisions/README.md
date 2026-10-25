@@ -17,6 +17,7 @@ can be defended for an app of this size, and say what was deliberately left out.
 | [0009](0009-accessibility-ux.md)         | Accessibility and UX details                           |
 | [0010](0010-testing.md)                  | Testing strategy                                       |
 | [0011](0011-storybook.md)                | Storybook, kept small                                  |
+| [0012](0012-motion-and-identity.md)      | Motion (View Transitions) and card identity            |
 
 Format: _Context_ (why a decision was needed) → _Decision_ → _Consequences_ (trade-offs,
 including what was not done).

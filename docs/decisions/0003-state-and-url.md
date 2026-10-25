@@ -23,12 +23,15 @@ catalogue (six films) is needed by every planet card and by the detail view.
 
 ## Consequences
 
-- No Pinia: no state is shared across pages apart from the film catalogue, and a memoised
-  promise is enough for that. If the app grew to cross-page caching or optimistic updates, a
-  store or TanStack Query would become worth it.
-- Returning to the list re-fetches the current page. That is one fast request, and it avoids
-  `<KeepAlive>` and cache invalidation. The browser's Back button restores the previous scroll
-  position (`savedPosition`); the in-page "All planets" link is a new navigation and starts at
-  the top.
+- No Pinia: the only shared data is the film catalogue and planets already seen in the list
+  ([0012](0012-motion-and-identity.md)). Each is a small module-level memo, and SWAPI data is
+  static, so nothing needs invalidating. If the app grew to editable data or optimistic updates,
+  a store or TanStack Query would become worth it.
+- **The list is kept alive** (`<KeepAlive include="PlanetsView">`) while a planet is open.
+  Back is instant, with no re-fetch, and returns to the same scroll position (`savedPosition`);
+  the cards are also there for the detail → list morph. While away, the list freezes its own
+  query, so it never reads the detail page's URL. It also drops unsaved typing and cancels its
+  timer, so a late debounce cannot navigate away from a planet. The in-page "All planets" link
+  is a new navigation and starts at the top.
 - The URL can be edited by hand. Malformed `page` values fall back to 1, and an out-of-range page
   gets a dedicated "Go to page 1" state ([0006](0006-error-handling.md)).

@@ -56,7 +56,7 @@ VITE_SWAPI_BASE_URL=https://swapi.dev/api   # default
 npm test
 ```
 
-There are 87 tests across 9 files, and they take about 4 seconds. Nothing calls the live API:
+There are 98 tests across 11 files, and they take about 4 seconds. Nothing calls the live API:
 `fetch` is replaced with a hand-controlled fake ([`src/test/fetch.ts`](src/test/fetch.ts)), so
 tests can resolve, reject or abort each request in any order. Fake timers cover the 300 ms
 debounce and the request timeout. Statement coverage is about 91%.
@@ -139,6 +139,21 @@ SWAPI has no images, so **each planet is drawn in SVG from its data**:
 See [ADR 0007](docs/decisions/0007-procedural-planet-art.md), or the _Biome gallery_ story in
 Storybook.
 
+## Motion and card identity
+
+- **Card to detail and back:** the planet's art and name fly between its card and the detail
+  hero, using the View Transitions API.
+- **Paging and search:** old cards fade out and new ones rise in with a stagger. Cards in both
+  result sets slide to their new place, and the search field stays live throughout.
+- **Planet colour:** each card takes its planet's colour for its border light, glow, number,
+  hover arrow and gauges.
+- **Hover:** a glare follows the pointer, the planet leans towards it, and a scan line sweeps
+  across the art.
+- **Gauges:** small bars compare size, surface water and population at a glance.
+
+All of it is progressive enhancement and turns off under `prefers-reduced-motion`. See
+[ADR 0012](docs/decisions/0012-motion-and-identity.md).
+
 ## Error handling
 
 Every failure becomes a typed `ApiError` (`network`, `timeout`, `http`, `not-found`, `parse`),
@@ -170,7 +185,10 @@ main trade-offs:
   shares the film catalogue, and a ~30-line guard handles request races. Each tool is named as
   the next step if the app grew.
 - **The URL is the source of truth.** Searches and pages are shareable and survive reloads.
-  Coming back to the list re-fetches one page instead of keeping a cache.
+  The list stays alive while a planet is open, so Back is instant and keeps your scroll
+  position.
+- **View Transitions instead of an animation library.** Browsers without them, and anyone who
+  prefers reduced motion, get instant updates.
 - **Residents are fetched one by one** on the detail page (SWAPI has no batch endpoint); film
   names come from one shared catalogue request.
 - **Manual retry instead of automatic retries with backoff**, so the behaviour is predictable

@@ -209,14 +209,18 @@ export interface Appearance extends BiomeStyle {
   scale: number
   /** Axial tilt in degrees, -20…20. */
   tilt: number
+  /** The planet's signature colour for UI around the art (glows, borders, gauges). */
+  tint: string
 }
 
 export function appearanceFor(planet: Pick<Planet, 'name' | 'climates' | 'terrains'>): Appearance {
   const biome = biomeFor(planet)
   const hash = hashString(planet.name)
+  const style = BIOMES[biome]
   return {
-    ...BIOMES[biome],
+    ...style,
     biome,
+    tint: style.atmosphere ?? style.base[0],
     seed: hash % 10_000,
     scale: 0.85 + ((hash >>> 8) % 31) / 100,
     tilt: ((hash >>> 16) % 41) - 20,

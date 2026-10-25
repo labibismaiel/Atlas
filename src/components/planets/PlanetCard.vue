@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import type { Film, Planet } from '@/models'
 import { formatList } from '@/utils/format'
+import { appearanceFor } from '@/components/planet/appearance'
+import { usePointerLight } from '@/composables/usePointerLight'
 import PlanetArt from '@/components/planet/PlanetArt.vue'
+import PlanetGauges from '@/components/planet/PlanetGauges.vue'
 
 const props = defineProps<{
   planet: Planet
@@ -12,22 +15,30 @@ const props = defineProps<{
 }>()
 
 const headingId = computed(() => `planet-${props.planet.id}-name`)
+
+// Each card takes its planet's signature colour: border, glow, gauges and hover light.
+const tint = computed(() => appearanceFor(props.planet).tint)
+
+usePointerLight(useTemplateRef<HTMLElement>('card'))
 </script>
 
 <template>
-  <article class="card" :aria-labelledby="headingId">
+  <article ref="card" class="card" :aria-labelledby="headingId" :style="{ '--tint': tint }">
+    <span class="card__glare" aria-hidden="true" />
     <header class="card__top">
       <span class="card__index">No. {{ planet.id.padStart(2, '0') }}</span>
       <span class="card__climate">{{ formatList(planet.climates) }}</span>
     </header>
 
     <!-- Shared-element names: the art and name morph into the detail page's hero. -->
-    <PlanetArt
-      class="card__art"
-      :planet="planet"
-      size="sm"
-      :style="{ viewTransitionName: `planet-art-${planet.id}` }"
-    />
+    <div class="card__visual">
+      <PlanetArt
+        class="card__art"
+        :planet="planet"
+        size="sm"
+        :style="{ viewTransitionName: `planet-art-${planet.id}` }"
+      />
+    </div>
 
     <h3
       :id="headingId"
@@ -42,6 +53,8 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
       </RouterLink>
     </h3>
     <p class="card__terrain">{{ formatList(planet.terrains) }}</p>
+
+    <PlanetGauges class="card__gauges" :planet="planet" />
 
     <!-- The arrow sits beside the film list in normal flow, so no content can run under it. -->
     <footer class="card__footer">
@@ -79,15 +92,36 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
   container-type: inline-size;
   padding: var(--space-5);
   @include glass;
+  // A faint wash of the planet's colour behind the art, stronger on hover.
+  background-image: radial-gradient(
+    16rem 12rem at 50% 28%,
+    color-mix(in oklab, var(--tint) 9%, transparent),
+    transparent 70%
+  );
   transition:
     border-color var(--duration-base) var(--ease-out),
-    background var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out),
     transform var(--duration-base) var(--ease-out);
+
+  // Signature hairline along the top edge.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 12% auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--tint), transparent);
+    opacity: 0.45;
+    transition: opacity var(--duration-base);
+  }
 
   &:hover,
   &:focus-within {
-    border-color: var(--border-strong);
-    background: var(--surface-glass-hover);
+    border-color: color-mix(in oklab, var(--tint) 45%, transparent);
+    background-color: var(--surface-glass-hover);
+
+    &::before {
+      opacity: 1;
+    }
   }
 
   @include motion {
@@ -110,6 +144,52 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
 
 .card__index {
   flex: none;
+  color: var(--tint);
+}
+
+// Soft light that follows the pointer (see usePointerLight); invisible until hovered.
+.card__glare {
+  position: absolute;
+  inset: 0;
+  // Behind the text; the card's backdrop-filter makes it a stacking context, so it stays inside.
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    18rem circle at var(--mx, 50%) var(--my, 30%),
+    color-mix(in oklab, var(--tint) 13%, transparent),
+    transparent 65%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-base);
+
+  .card:hover & {
+    opacity: 1;
+  }
+}
+
+.card__visual {
+  position: relative;
+  width: min(10rem, 62%);
+  margin: var(--space-4) auto var(--space-3);
+
+  // Scan line sweeping across the planet on hover, as in the detail design reference.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0 46%,
+      color-mix(in oklab, var(--tint) 55%, transparent) 50%,
+      transparent 54%
+    );
+    background-size: 100% 300%;
+    background-position: 0 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .card__climate {
@@ -119,9 +199,20 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
   white-space: nowrap;
 }
 
-.card__art {
-  width: min(10rem, 62%);
-  margin: var(--space-4) auto var(--space-3);
+@include motion {
+  // The planet leans slightly towards the pointer.
+  .card__art {
+    transform: translate(calc(var(--px, 0) * 6px), calc(var(--py, 0) * 6px));
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .card:hover .card__visual::after {
+    animation: scan 1.4s var(--ease-out) both;
+  }
+}
+
+.card__gauges {
+  margin-top: var(--space-3);
 }
 
 .card__name {
@@ -235,9 +326,21 @@ const headingId = computed(() => `planet-${props.planet.id}-name`)
 
   .card:hover &,
   .card:focus-within & {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
+    background: var(--tint);
+    border-color: var(--tint);
     color: var(--color-bg);
+  }
+}
+
+@keyframes scan {
+  0% {
+    opacity: 1;
+    background-position: 0 100%;
+  }
+
+  100% {
+    opacity: 0;
+    background-position: 0 0%;
   }
 }
 

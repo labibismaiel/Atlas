@@ -26,6 +26,9 @@ const backTo = computed<RouteLocationRaw>(() => {
 
 const films = computed(() => (planet.value ? filmsCatalogue.filmsFor(planet.value.filmIds) : []))
 
+// Same signature colour as the planet's card, so the morph lands in a matching hero.
+const look = computed(() => (planet.value ? appearanceFor(planet.value) : null))
+
 const fact = (label: string, value: string, unknown = false): Fact => ({ label, value, unknown })
 
 const keyFacts = computed<Fact[]>(() => {
@@ -69,7 +72,7 @@ watch(planet, (value) => {
 </script>
 
 <template>
-  <article class="detail" :aria-busy="state === 'loading'">
+  <article class="detail" :aria-busy="state === 'loading'" :style="{ '--tint': look?.tint }">
     <RouterLink :to="backTo" class="detail__back">
       <span aria-hidden="true">←</span> All planets
     </RouterLink>
@@ -140,7 +143,7 @@ watch(planet, (value) => {
             class="hero__art"
             :style="{ viewTransitionName: `planet-art-${planet.id}` }"
           />
-          <p class="hero__caption">Artist's impression · {{ appearanceFor(planet).label }}</p>
+          <p class="hero__caption">Artist's impression · {{ look?.label }}</p>
         </div>
       </section>
 
@@ -275,7 +278,7 @@ watch(planet, (value) => {
   text-transform: uppercase;
   overflow-wrap: break-word;
   text-shadow:
-    0 0 24px rgb(190 215 255 / 0.35),
+    0 0 24px color-mix(in oklab, var(--tint, #bed7ff) 40%, transparent),
     0 0 2px rgb(255 255 255 / 0.6);
 }
 
@@ -310,6 +313,12 @@ watch(planet, (value) => {
 }
 
 .hero__visual {
+  // The planet's light spilling into the page behind it.
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklab, var(--tint, transparent) 16%, transparent),
+    transparent 62%
+  );
   position: relative;
   display: grid;
   place-items: center;
@@ -346,8 +355,8 @@ watch(planet, (value) => {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--color-text);
-    box-shadow: 0 0 12px rgb(255 255 255 / 0.8);
+    background: var(--tint, var(--color-text));
+    box-shadow: 0 0 12px var(--tint, rgb(255 255 255 / 0.8));
   }
 
   @include motion {
